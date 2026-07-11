@@ -51,13 +51,13 @@ function initElement(element) {
         return;
     }
 
-    if (state_id.includes(",")) state_id = state_id.split(",");
+    // Split state-id string into an array of trimmed individual IDs
+    const idArray = state_id.split(',').map(id => id.trim()).filter(Boolean);
 
-    if (!Array.isArray(state_id)) state_id = [state_id];
-
-    for (let i = 0; i < state_id.length; i++) {
-        let attrValues = statedAttributes[`${state_id[i].trim()}`];
-        if (!attrValues) continue; // Use continue to ensure other IDs in the array still process
+    // Apply values stored under each ID listed in the array
+    for (let id of idArray) {
+        let attrValues = statedAttributes[id];
+        if (!attrValues) continue; // Continue to ensure other IDs in the array still process
         _setAttributeValues(element, attrValues);
     }
 }
@@ -79,7 +79,6 @@ function _setAttributeValues(el, attrValues) {
 }
 
 async function _setAttributeValue(element, attribute, value, isOverwrite) {
-    // TODO: if (value !== undefined)???
     if (!element.getAttribute(attribute) || isOverwrite) {
         if (attribute == "value") {
             if (element.value == "" || (element.value && isOverwrite))
@@ -117,10 +116,6 @@ async function stateAttributes(element) {
     
     let elements = [];
 
-    // let form = element.closest("form");
-    // if (form) {
-    //  elements = form.querySelectorAll("[state_to]");
-    // } else {
     if (element.hasAttribute("state-to")) elements.push(element);
     let nestedElements = element.querySelectorAll("[state-to]");
     elements.push(...nestedElements);
@@ -131,7 +126,6 @@ async function stateAttributes(element) {
         }
         current = current.parentElement;
     }
-    // }
 
     let changeState = false;
     let sessionChanged = false;
@@ -154,24 +148,35 @@ async function stateAttributes(element) {
         }
 
         let state_to = elements[i].getAttribute("state-to");
+        if (!state_to) continue;
         
         let isLocal = triggerIsLocal || elements[i].hasAttribute("state-localstorage") || elements[i].hasAttribute("state-onstoragechange");
         
-        if (isLocal) {
-            Object.assign(localState, { [`${state_to}`]: attrValues });
-            localChanged = true;
-        } else {
-            Object.assign(sessionState, { [`${state_to}`]: attrValues });
-            sessionChanged = true;
+        // Parse state-to string into an array of trimmed individual target keys
+        let stateToKeys = state_to.split(',').map(s => s.trim()).filter(Boolean);
+
+        for (let toKey of stateToKeys) {
+            if (isLocal) {
+                Object.assign(localState, { [`${toKey}`]: attrValues });
+                localChanged = true;
+            } else {
+                Object.assign(sessionState, { [`${toKey}`]: attrValues });
+                sessionChanged = true;
+            }
+            
+            _getStateId(attrValues, toKey);
         }
-        
-        _getStateId(attrValues, state_to);
     }
     
     let href = element.closest("href");
     if (!changeState && !href) {
-        // TODO: Handle $title when adding statedAttributes
-        let title = element.getAttribute("title") || document.title || "";
+        // --- IMPROVEMENT: Explicitly support [state-title] only, with document.title fallback (No native 'title' fallback) ---
+        let title = element.getAttribute("state-title") || document.title || "";
+        
+        // --- IMPROVEMENT: Update document.title immediately on click/action ---
+        if (title) {
+            document.title = title;
+        }
         
         history.pushState(
             { sessionState: JSON.stringify(sessionState), localState: JSON.stringify(localState), title, url: location.href },
@@ -210,9 +215,16 @@ async function _getAttributeValues(element) {
     return attributeValues;
 }
 
+// Scans elements containing [state-id] and updates those matching the target key
 function _getStateId(attrValues, state_to) {
-    const elements = document.querySelectorAll(`[state-id="${state_to}"]`);
-    for (let element of elements) _setAttributeValues(element, attrValues);
+    const elements = document.querySelectorAll('[state-id]');
+    for (let element of elements) {
+        let state_id_attr = element.getAttribute("state-id") || "";
+        let idArray = state_id_attr.split(',').map(id => id.trim()).filter(Boolean);
+        if (idArray.includes(state_to)) {
+            _setAttributeValues(element, attrValues);
+        }
+    }
 }
 
 window.onload = function () {
@@ -247,11 +259,11 @@ window.addEventListener("popstate", function (event) {
 
         if (event.state.url && event.state.url !== window.location.href) {
             if (event.state.title)
-                sessionStorage.setItem("currentPageTitle", event.state.title); // Store title using the wrapper
+                sessionStorage.setItem("currentPageTitle", event.state.title);
 
-            location.href = event.state.url; // Navigate if the URL is different
+            location.href = event.state.url;
         } else if (event.state.title) {
-            document.title = event.state.title; // Update the title if provided
+            document.title = event.state.title;
         }
     }
 });
