@@ -1,3 +1,13 @@
+## [1.25.2](https://github.com/CoCreate-app/CoCreate-state/compare/v1.25.1...v1.25.2) (2026-07-11)
+
+
+### Bug Fixes
+
+* bump package versions ([aabd567](https://github.com/CoCreate-app/CoCreate-state/commit/aabd5671ecd90e0bf4d3fa7232a471239e1711e2))
+* improve state-id handling and support multiple state-to keys ([21a4f11](https://github.com/CoCreate-app/CoCreate-state/commit/21a4f11279f7cb12e811611f0ea28f186e67ff7a))
+* removed post install and add add packages to apprved list ([7c4b3ce](https://github.com/CoCreate-app/CoCreate-state/commit/7c4b3cea12c1438018a0b3b144f177bf539380af))
+* semantic version handling ([9ca5e3e](https://github.com/CoCreate-app/CoCreate-state/commit/9ca5e3e929a2a0c5a6d5881b6d777eda6ebeaca1))
+
 ## [1.25.1](https://github.com/CoCreate-app/CoCreate-state/compare/v1.25.0...v1.25.1) (2026-03-05)
 
 
