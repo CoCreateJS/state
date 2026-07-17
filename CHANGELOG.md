@@ -1,3 +1,10 @@
+## [1.26.1](https://github.com/CoCreate-app/CoCreate-state/compare/v1.26.0...v1.26.1) (2026-07-17)
+
+
+### Bug Fixes
+
+* bump dependencies ([f474f83](https://github.com/CoCreate-app/CoCreate-state/commit/f474f8398f5597cd9dca6cf0a45d4fdc8ad4d061))
+
 # [1.26.0](https://github.com/CoCreate-app/CoCreate-state/compare/v1.25.2...v1.26.0) (2026-07-17)
 
 
