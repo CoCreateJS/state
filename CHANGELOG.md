@@ -1,3 +1,10 @@
+# [1.26.0](https://github.com/CoCreate-app/CoCreate-state/compare/v1.25.2...v1.26.0) (2026-07-17)
+
+
+### Features
+
+* update automated workflow and release configuration for improved semantic release handling ([f7b1a38](https://github.com/CoCreate-app/CoCreate-state/commit/f7b1a388912d2a48db42a8a0578a1f8af08bbacb))
+
 ## [1.25.2](https://github.com/CoCreate-app/CoCreate-state/compare/v1.25.1...v1.25.2) (2026-07-11)
 
 
