@@ -1,3 +1,10 @@
+## [1.26.2](https://github.com/CoCreate-app/CoCreate-state/compare/v1.26.1...v1.26.2) (2026-07-19)
+
+
+### Bug Fixes
+
+* set default branch to main ([9ba0121](https://github.com/CoCreate-app/CoCreate-state/commit/9ba01210d2b2bcdcbf13bb5e693d6a96fd979c2a))
+
 ## [1.26.1](https://github.com/CoCreate-app/CoCreate-state/compare/v1.26.0...v1.26.1) (2026-07-17)
 
 
