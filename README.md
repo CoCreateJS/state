@@ -4,14 +4,6 @@
 
 [Docs and demo](https://cocreate.app/docs/state) | [Changelog](https://github.com/CoCreate-app/CoCreate-state/blob/master/CHANGELOG.md) | [Issues](https://github.com/CoCreate-app/CoCreate-state/issues)
 
-![minified](https://img.badgesize.io/https://cdn.cocreate.app/state/latest/CoCreate-state.min.js?style=flat-square&label=minified&color=orange)
-![gzip](https://img.badgesize.io/https://cdn.cocreate.app/state/latest/CoCreate-state.min.js?compression=gzip&style=flat-square&label=gzip&color=yellow)
-![brotli](https://img.badgesize.io/https://cdn.cocreate.app/state/latest/CoCreate-state.min.js?compression=brotli&style=flat-square&label=brotli)
-![GitHub latest release](https://img.shields.io/github/v/release/CoCreate-app/CoCreate-state?style=flat-square)
-![License](https://img.shields.io/github/license/CoCreate-app/CoCreate-state?style=flat-square)
-
-![CoCreate-state](https://cdn.cocreate.app/docs/CoCreate-state.gif)
-
 ## Installation
 
 ### CDN
