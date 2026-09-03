@@ -6,6 +6,25 @@ import storage from "@cocreate/local-storage";
 
 const { localStorage, sessionStorage } = storage;
 
+async function syncActiveState() {
+    if (!("serviceWorker" in navigator)) return;
+
+    const message = {
+        action: "setActiveState",
+        state: sessionStorage.getItem("state") || "{}",
+        theme: window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light"
+    };
+    const worker = navigator.serviceWorker.controller ||
+        (await navigator.serviceWorker.ready).active;
+    worker?.postMessage(message);
+}
+
+function syncVisibleState() {
+    if (document.visibilityState === "visible") void syncActiveState();
+}
+
 function init() {
     let elements = document.querySelectorAll("[state-id]");
     initElements(elements);
@@ -27,6 +46,11 @@ function init() {
             stateAttributes(target);
         }
     });
+
+    window.addEventListener("focus", syncVisibleState);
+    window.addEventListener("pageshow", syncVisibleState);
+    document.addEventListener("visibilitychange", syncVisibleState);
+    syncVisibleState();
 }
 
 function initElements(elements) {
@@ -188,6 +212,7 @@ async function stateAttributes(element) {
     if (!changeState) {
         if (sessionChanged) sessionStorage.setItem("state", JSON.stringify(sessionState));
         if (localChanged) localStorage.setItem("state", JSON.stringify(localState));
+        if (sessionChanged) void syncActiveState();
     }
 
     element.dispatchEvent(
