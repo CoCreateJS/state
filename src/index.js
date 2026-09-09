@@ -28,7 +28,7 @@ function syncVisibleState() {
 function init() {
     let elements = document.querySelectorAll("[state-id]");
     initElements(elements);
-    
+
     window.addEventListener("storage", function (e) {
         if (e.key == "state") {
             // Re-initialize only elements that are explicitly listening to storage changes
@@ -38,9 +38,9 @@ function init() {
             initElements(elements);
         }
     });
-    
+
     document.addEventListener("click", function (e) {
-        const target = e.target.closest("[state-to]");
+        const target = e.target.closest("[state-to], [state]");
         if (target) {
             if (target.closest('[actions*="state"]')) return;
             stateAttributes(target);
@@ -68,7 +68,7 @@ function initElement(element) {
     let statedAttributes = storageObj.getItem("state");
 
     if (!statedAttributes || statedAttributes.length == 0) return;
-    
+
     try {
         statedAttributes = JSON.parse(statedAttributes);
     } catch(e) {
@@ -131,21 +131,101 @@ async function _setAttributeValue(element, attribute, value, isOverwrite) {
     }
 }
 
+function getStoredState(storageObj) {
+    try {
+        const state = JSON.parse(storageObj.getItem("state") || "{}");
+        return state && typeof state === "object" && !Array.isArray(state)
+            ? state
+            : {};
+    } catch (error) {
+        return {};
+    }
+}
+
+function mergeState(targetState, state) {
+    if (!state || typeof state !== "object" || Array.isArray(state))
+        return false;
+
+    let changed = false;
+    for (const [stateId, values] of Object.entries(state)) {
+        if (!values || typeof values !== "object" || Array.isArray(values))
+            continue;
+
+        targetState[stateId] = {
+            ...targetState[stateId],
+            ...values
+        };
+        _getStateId(targetState[stateId], stateId);
+        changed = true;
+    }
+
+    return changed;
+}
+
+function persistState({
+    sessionState,
+    localState,
+    sessionChanged,
+    localChanged,
+    title = document.title,
+    updateHistory = true
+}) {
+    if (sessionChanged)
+        sessionStorage.setItem("state", JSON.stringify(sessionState));
+    if (localChanged)
+        localStorage.setItem("state", JSON.stringify(localState));
+    if (sessionChanged) void syncActiveState();
+
+    if (title) document.title = title;
+    if (updateHistory) {
+        history.pushState(
+            {
+                sessionState: JSON.stringify(sessionState),
+                localState: JSON.stringify(localState),
+                title,
+                url: location.href
+            },
+            title,
+            location.href
+        );
+    }
+}
+
+function setState(state, options = {}) {
+    const sessionState = getStoredState(sessionStorage);
+    const localState = getStoredState(localStorage);
+    const isLocal =
+        options.storage === "local" || options.localStorage === true;
+    const changed = mergeState(isLocal ? localState : sessionState, state);
+
+    if (!changed) return false;
+
+    persistState({
+        sessionState,
+        localState,
+        sessionChanged: !isLocal,
+        localChanged: isLocal,
+        title: options.title || document.title || ""
+    });
+    return true;
+}
+
 async function stateAttributes(element) {
-    let sessionState = {};
-    let localState = {};
-    
-    try { sessionState = JSON.parse(sessionStorage.getItem("state") || "{}"); } catch(e) {}
-    try { localState = JSON.parse(localStorage.getItem("state") || "{}"); } catch(e) {}
-    
+    let sessionState = getStoredState(sessionStorage);
+    let localState = getStoredState(localStorage);
+
     let elements = [];
 
-    if (element.hasAttribute("state-to")) elements.push(element);
-    let nestedElements = element.querySelectorAll("[state-to]");
+    if (element.hasAttribute("state-to") || element.hasAttribute("state"))
+        elements.push(element);
+    let nestedElements = element.querySelectorAll("[state-to], [state]");
     elements.push(...nestedElements);
     let current = element;
     while (current) {
-        if (current.hasAttribute("state-to") && !elements.includes(current)) {
+        if (
+            (current.hasAttribute("state-to") || current.hasAttribute("state")) &&
+            !elements.includes(current)
+        ) {
             elements.push(current);
         }
         current = current.parentElement;
@@ -157,6 +237,25 @@ async function stateAttributes(element) {
     let triggerIsLocal = element.hasAttribute("state-localstorage") || element.hasAttribute("state-onstoragechange");
 
     for (let i = 0; i < elements.length; i++) {
+        let isLocal =
+            triggerIsLocal ||
+            elements[i].hasAttribute("state-localstorage") ||
+            elements[i].hasAttribute("state-onstoragechange");
+        const targetState = isLocal ? localState : sessionState;
+        const stateValue = elements[i].getAttribute("state");
+
+        if (stateValue) {
+            try {
+                const parsedState = JSON.parse(stateValue);
+                if (mergeState(targetState, parsedState)) {
+                    if (isLocal) localChanged = true;
+                    else sessionChanged = true;
+                }
+            } catch (error) {
+                console.warn("Invalid state JSON:", stateValue, error);
+            }
+        }
+
         let attrValues = await _getAttributeValues(elements[i]);
         if (attrValues.src === "$back" || attrValues.href === "$back") {
             changeState = true;
@@ -173,46 +272,33 @@ async function stateAttributes(element) {
 
         let state_to = elements[i].getAttribute("state-to");
         if (!state_to) continue;
-        
-        let isLocal = triggerIsLocal || elements[i].hasAttribute("state-localstorage") || elements[i].hasAttribute("state-onstoragechange");
-        
+
         // Parse state-to string into an array of trimmed individual target keys
         let stateToKeys = state_to.split(',').map(s => s.trim()).filter(Boolean);
 
         for (let toKey of stateToKeys) {
-            if (isLocal) {
-                Object.assign(localState, { [`${toKey}`]: attrValues });
-                localChanged = true;
-            } else {
-                Object.assign(sessionState, { [`${toKey}`]: attrValues });
-                sessionChanged = true;
-            }
-            
+            // A state-to writer defines the complete state for its target.
+            // Replace the prior value so stale attributes and actions do not
+            // survive subsequent writes.
             _getStateId(attrValues, toKey);
+            targetState[toKey] = attrValues;
+
+            if (isLocal) localChanged = true;
+            else sessionChanged = true;
         }
-    }
-    
-    let href = element.closest("href");
-    if (!changeState && !href) {
-        // --- IMPROVEMENT: Explicitly support [state-title] only, with document.title fallback (No native 'title' fallback) ---
-        let title = element.getAttribute("state-title") || document.title || "";
-        
-        // --- IMPROVEMENT: Update document.title immediately on click/action ---
-        if (title) {
-            document.title = title;
-        }
-        
-        history.pushState(
-            { sessionState: JSON.stringify(sessionState), localState: JSON.stringify(localState), title, url: location.href },
-            title,
-            location.href
-        );
     }
 
+    let href = element.closest("href");
     if (!changeState) {
-        if (sessionChanged) sessionStorage.setItem("state", JSON.stringify(sessionState));
-        if (localChanged) localStorage.setItem("state", JSON.stringify(localState));
-        if (sessionChanged) void syncActiveState();
+        const title = element.getAttribute("state-title") || document.title || "";
+        persistState({
+            sessionState,
+            localState,
+            sessionChanged,
+            localChanged,
+            title,
+            updateHistory: !href
+        });
     }
 
     element.dispatchEvent(
@@ -277,7 +363,7 @@ window.addEventListener("popstate", function (event) {
         if (event.state.sessionState || event.state.localState) {
             if (event.state.sessionState) sessionStorage.setItem("state", event.state.sessionState);
             if (event.state.localState) localStorage.setItem("state", event.state.localState);
-            
+
             let elements = document.querySelectorAll("[state-id]");
             initElements(elements);
         }
@@ -312,4 +398,5 @@ Action.init({
 
 init();
 
-export default { initElements, initElement, stateAttributes };
+export { setState };
+export default { initElements, initElement, stateAttributes, setState };
