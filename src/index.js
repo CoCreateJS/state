@@ -142,6 +142,63 @@ function getStoredState(storageObj) {
     }
 }
 
+function normalizeUnset(value) {
+    if (Array.isArray(value))
+        return value.map(String).map(key => key.trim()).filter(Boolean);
+    if (typeof value === "string")
+        return value.split(",").map(key => key.trim()).filter(Boolean);
+    return [];
+}
+
+function unsetKeys(state, keys) {
+    if (!state || typeof state !== "object") return false;
+    let changed = false;
+    for (const key of keys) {
+        if (!Object.prototype.hasOwnProperty.call(state, key)) continue;
+        delete state[key];
+        changed = true;
+    }
+    return changed;
+}
+
+function unsetElementValues(element, keys) {
+    for (const key of keys) {
+        if (key.startsWith("$")) {
+            const property = key.slice(1);
+            if (
+                Object.prototype.hasOwnProperty.call(element, property) &&
+                typeof element[property] !== "function"
+            ) {
+                try {
+                    delete element[property];
+                } catch (error) {
+                    element[property] = undefined;
+                }
+            }
+            continue;
+        }
+
+        if (key === "value") {
+            element.setValue("");
+            element.removeAttribute("value");
+        } else {
+            element.removeAttribute(key);
+        }
+    }
+}
+
+function _unsetStateId(keys, stateId) {
+    if (!keys.length) return;
+    const elements = document.querySelectorAll("[state-id]");
+    for (const element of elements) {
+        const ids = (element.getAttribute("state-id") || "")
+            .split(",")
+            .map(id => id.trim())
+            .filter(Boolean);
+        if (ids.includes(stateId)) unsetElementValues(element, keys);
+    }
+}
+
 function mergeState(targetState, state) {
     if (!state || typeof state !== "object" || Array.isArray(state))
         return false;
@@ -151,12 +208,19 @@ function mergeState(targetState, state) {
         if (!values || typeof values !== "object" || Array.isArray(values))
             continue;
 
+        const unset = normalizeUnset(values.$unset);
+        const nextValues = { ...values };
+        delete nextValues.$unset;
         targetState[stateId] = {
             ...targetState[stateId],
-            ...values
+            ...nextValues
         };
+        if (unset.length) {
+            unsetKeys(targetState[stateId], unset);
+            _unsetStateId(unset, stateId);
+        }
         _getStateId(targetState[stateId], stateId);
-        changed = true;
+        changed = Object.keys(nextValues).length > 0 || unset.length > 0 || changed;
     }
 
     return changed;
@@ -280,11 +344,26 @@ async function stateAttributes(element) {
             // A state-to writer defines the complete state for its target.
             // Replace the prior value so stale attributes and actions do not
             // survive subsequent writes.
-            _getStateId(attrValues, toKey);
-            targetState[toKey] = attrValues;
+            const unset = normalizeUnset(attrValues.$unset);
+            const nextValues = { ...attrValues };
+            delete nextValues.$unset;
 
-            if (isLocal) localChanged = true;
-            else sessionChanged = true;
+            if (Object.keys(nextValues).length) {
+                _getStateId(nextValues, toKey);
+                targetState[toKey] = nextValues;
+            } else if (!targetState[toKey]) {
+                targetState[toKey] = {};
+            }
+
+            if (unset.length) {
+                unsetKeys(targetState[toKey], unset);
+                _unsetStateId(unset, toKey);
+            }
+
+            if (Object.keys(nextValues).length || unset.length) {
+                if (isLocal) localChanged = true;
+                else sessionChanged = true;
+            }
         }
     }
 
