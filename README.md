@@ -57,7 +57,6 @@ When the button is activated, the module stores `{ "data-name": "Ada Lovelace", 
 | --- | --- | --- |
 | `state-to` | One or more comma-separated state keys to write. | `state-to="profile, sidebar"` |
 | `state.*` | Captures an attribute value under the name after `state.`. | `state.name="Ada"` |
-| `state-overwrite` | Controls whether stored values replace existing reader values. | `state-overwrite="true"` |
 | `state-localstorage` | Writes to local storage instead of session storage. | `state-localstorage` |
 | `state-onstoragechange` | Uses local storage and opts a reader into storage-change reinitialization. | `state-onstoragechange` |
 | `state-title` | Sets the document title used for the history entry. | `state-title="Profile"` |
@@ -69,7 +68,7 @@ The `state.*` syntax is an attribute namespace. For example, `state.class="selec
 | Attribute | Purpose | Example |
 | --- | --- | --- |
 | `state-id` | One or more state keys whose values should be applied to the element. | `state-id="profile"` |
-| `state-overwrite` | Overrides the stored `overwrite` value for this reader. | `state-overwrite="false"` |
+| `state-overwrite` | Allows overwriting by default; set to `false` to preserve existing values. | `state-overwrite="false"` |
 | `state-localstorage` | Reads from local storage instead of session storage. | `state-localstorage` |
 | `state-onstoragechange` | Reads local storage and allows the reader to refresh after a storage event. | `state-onstoragechange` |
 
@@ -112,14 +111,38 @@ The storage record is a JSON object keyed by state ID:
 
 ## Overwrite behavior
 
-`state-overwrite` determines whether stored values replace existing values on a reader:
+State overwrites existing reader values by default. No `state-overwrite` attribute is needed:
 
 ```html
-<input state-id="search" state-overwrite="true">
-<button state-to="search" state.query="co">Apply</button>
+<form state-id="offcanvas-app-form" array="" object=""></form>
+<button state-to="offcanvas-app-form" state.array="apps" state.object="first-id">First app</button>
+<button state-to="offcanvas-app-form" state.array="apps" state.object="second-id">Second app</button>
 ```
 
-When the reader has no `state-overwrite`, the writer's stored `overwrite` value is used when present. An empty boolean attribute is treated as enabled; the string `"false"` disables overwrite. Without overwrite, existing attributes are preserved and only missing attributes are eligible for assignment.
+Clicking the buttons in order changes the form's `object` from `first-id` to `second-id`.
+
+Set `state-overwrite="false"` on the **reader** to preserve its existing nonempty attributes:
+
+```html
+<form state-id="initial-app" state-overwrite="false" array="" object=""></form>
+<button state-to="initial-app" state.array="apps" state.object="first-id">First app</button>
+<button state-to="initial-app" state.array="apps" state.object="second-id">Second app</button>
+```
+
+The first click fills the empty `array` and `object` attributes. The second click leaves those values unchanged. An attribute that already has a nonempty value in the HTML is preserved from the start.
+
+| Reader attribute | Behavior |
+| --- | --- |
+| Omitted | Overwrite existing values (default). |
+| `state-overwrite` or `state-overwrite=""` | Overwrite existing values. |
+| `state-overwrite="true"` | Overwrite existing values. |
+| `state-overwrite="false"` | Preserve existing nonempty values. |
+
+Use the exact value `"false"` to disable overwrite. The stored `overwrite` property does not control this behavior.
+
+This is a check of the reader's current value, not a one-time initialization flag. Clearing a declared attribute to `""` allows state to fill it again. Stored state can still change, and other readers can continue receiving updates.
+
+Readers must declare the ordinary attributes they accept, such as `array=""` and `object=""`; enabling overwrite does not add undeclared attributes. Values, classes, and `$` methods follow the rules below.
 
 ## Values, classes, and methods
 
@@ -130,7 +153,7 @@ An empty `state.value` attribute reads the writer's current value asynchronously
 ```html
 <input id="query" value="co">
 <button state-to="search" state.value="">Save search</button>
-<input state-id="search" state-overwrite="true">
+<input state-id="search">
 ```
 
 If the value is not empty, the literal attribute value is stored. Readers may use native `.value` assignment or `setValue()` depending on the element state and overwrite rules.
@@ -152,7 +175,7 @@ Keys beginning with `$` are interpreted as element operations:
 
 ```html
 <button state-to="focus" state.$focus="">Focus input</button>
-<input state-id="focus" state-overwrite="true">
+<input state-id="focus">
 ```
 
 The target must expose the named property or method. A method receives the stored value as its argument. Unsupported operations are ignored.
@@ -226,7 +249,7 @@ These points reflect the current implementation and are important when designing
 - `state-localstorage` and `state-onstoragechange` select local storage for both writers and readers. A reader using only session storage will not see a local state key.
 - State writers call `_getStateId()` immediately, so matching readers update before the storage write completes. Storage and reader updates are intentionally coupled.
 - Class state is additive. Writing a new class does not remove a previous state class.
-- Attribute assignment is conservative: a reader may need the target attribute to exist before a stored value can set it, unless overwrite rules allow the assignment path used by the element.
+- Ordinary attribute assignment requires the reader to declare the target attribute. Overwrite is enabled by default; `state-overwrite="false"` preserves nonempty existing attributes.
 - The source checks `element.closest("href")` when deciding whether to push history. `href` is normally an attribute on an anchor rather than an HTML element name, so links should be tested carefully; this is a likely navigation bug and should be reviewed before relying on it.
 - `init()` registers global click, storage, load, and popstate listeners immediately when the module is imported. Applications should avoid loading the module more than once.
 - There is no built-in state deletion or reset attribute. Clearing a key currently requires writing a new state object through the storage adapter or adding an explicit integration.
@@ -239,7 +262,7 @@ Confirm that its `state-id` exactly matches a `state-to` key, including whitespa
 
 ### A value is not replaced
 
-Set `state-overwrite="true"` on the reader or include an overwrite value in the stored state. Without overwrite, existing values and attributes are intentionally preserved.
+Check whether the reader has `state-overwrite="false"`. Remove it to restore the default overwrite behavior. For ordinary attributes, also ensure the reader declares the target attribute.
 
 ### Another tab does not refresh
 

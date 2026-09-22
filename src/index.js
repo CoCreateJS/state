@@ -47,6 +47,9 @@ function init() {
         }
     });
 
+    window.matchMedia("(prefers-color-scheme: dark)")
+        .addEventListener("change", syncActiveState);
+    navigator.serviceWorker?.addEventListener("controllerchange", syncActiveState);
     window.addEventListener("focus", syncVisibleState);
     window.addEventListener("pageshow", syncVisibleState);
     document.addEventListener("visibilitychange", syncVisibleState);
@@ -87,15 +90,7 @@ function initElement(element) {
 }
 
 function _setAttributeValues(el, attrValues) {
-    let isOverwrite = el.getAttribute("state-overwrite");
-    if (isOverwrite === null || isOverwrite === undefined)
-        isOverwrite = attrValues["overwrite"];
-
-    if ((isOverwrite && isOverwrite != "false") || isOverwrite === "")
-        isOverwrite = true;
-    else if (!isOverwrite || isOverwrite === "false") isOverwrite = false;
-
-    // delete attrValues["overwrite"];
+    const isOverwrite = el.getAttribute("state-overwrite") !== "false";
 
     for (const key of Object.keys(attrValues)) {
         _setAttributeValue(el, key, attrValues[key], isOverwrite);
@@ -104,7 +99,9 @@ function _setAttributeValues(el, attrValues) {
 
 async function _setAttributeValue(element, attribute, value, isOverwrite) {
     if (!element.getAttribute(attribute) || isOverwrite) {
-        if (attribute == "value") {
+        if (attribute === "hidden") {
+            element.hidden = value !== false && value !== "false" && value !== null;
+        } else if (attribute == "value") {
             if (element.value == "" || (element.value && isOverwrite))
                 element.value = value;
             else if (
@@ -199,7 +196,7 @@ function _unsetStateId(keys, stateId) {
     }
 }
 
-function mergeState(targetState, state) {
+function mergeState(targetState, state, updates) {
     if (!state || typeof state !== "object" || Array.isArray(state))
         return false;
 
@@ -217,9 +214,12 @@ function mergeState(targetState, state) {
         };
         if (unset.length) {
             unsetKeys(targetState[stateId], unset);
-            _unsetStateId(unset, stateId);
+            if (updates) updates.push(() => _unsetStateId(unset, stateId));
+            else _unsetStateId(unset, stateId);
         }
-        _getStateId(targetState[stateId], stateId);
+        const valuesToApply = { ...targetState[stateId] };
+        if (updates) updates.push(() => _getStateId(valuesToApply, stateId));
+        else _getStateId(valuesToApply, stateId);
         changed = Object.keys(nextValues).length > 0 || unset.length > 0 || changed;
     }
 
@@ -278,6 +278,7 @@ async function stateAttributes(element) {
     let sessionState = getStoredState(sessionStorage);
     let localState = getStoredState(localStorage);
 
+    const updates = [];
     let elements = [];
 
     if (element.hasAttribute("state-to") || element.hasAttribute("state"))
@@ -311,7 +312,7 @@ async function stateAttributes(element) {
         if (stateValue) {
             try {
                 const parsedState = JSON.parse(stateValue);
-                if (mergeState(targetState, parsedState)) {
+                if (mergeState(targetState, parsedState, updates)) {
                     if (isLocal) localChanged = true;
                     else sessionChanged = true;
                 }
@@ -349,7 +350,7 @@ async function stateAttributes(element) {
             delete nextValues.$unset;
 
             if (Object.keys(nextValues).length) {
-                _getStateId(nextValues, toKey);
+                updates.push(() => _getStateId(nextValues, toKey));
                 targetState[toKey] = nextValues;
             } else if (!targetState[toKey]) {
                 targetState[toKey] = {};
@@ -357,7 +358,7 @@ async function stateAttributes(element) {
 
             if (unset.length) {
                 unsetKeys(targetState[toKey], unset);
-                _unsetStateId(unset, toKey);
+                updates.push(() => _unsetStateId(unset, toKey));
             }
 
             if (Object.keys(nextValues).length || unset.length) {
@@ -378,6 +379,8 @@ async function stateAttributes(element) {
             title,
             updateHistory: !href
         });
+        // Source observers must see the complete selection in X-State.
+        for (const update of updates) update();
     }
 
     element.dispatchEvent(
