@@ -311,7 +311,9 @@ async function stateAttributes(element) {
 
         if (stateValue) {
             try {
-                const parsedState = JSON.parse(stateValue);
+                const parsedState = typeof stateValue === "string"
+                    ? JSON.parse(stateValue)
+                    : stateValue;
                 if (mergeState(targetState, parsedState, updates)) {
                     if (isLocal) localChanged = true;
                     else sessionChanged = true;
