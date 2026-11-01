@@ -56,10 +56,20 @@ function init() {
     syncVisibleState();
 }
 
+/**
+ *
+ * @public
+ * @environment client
+ */
 function initElements(elements) {
     for (let element of elements) initElement(element);
 }
 
+/**
+ *
+ * @public
+ * @environment client
+ */
 function initElement(element) {
     let state_id = element.getAttribute("state-id");
     if (!state_id) return;
@@ -255,6 +265,11 @@ function persistState({
     }
 }
 
+/**
+ *
+ * @public
+ * @environment client
+ */
 function setState(state, options = {}) {
     const sessionState = getStoredState(sessionStorage);
     const localState = getStoredState(localStorage);
@@ -274,6 +289,11 @@ function setState(state, options = {}) {
     return true;
 }
 
+/**
+ *
+ * @public
+ * @environment client
+ */
 async function stateAttributes(element) {
     let sessionState = getStoredState(sessionStorage);
     let localState = getStoredState(localStorage);
@@ -484,3 +504,89 @@ init();
 
 export { setState };
 export default { initElements, initElement, stateAttributes, setState };
+
+/**
+ *
+ * @name state
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name state-id
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name state-localstorage
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name state-onstoragechange
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name state-overwrite
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name state-title
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name state-to
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ *
+ * @name value
+ * @kind member
+ * @attribute
+ * @environment client
+ */
+
+/**
+ * Data attributes which can be used for components in CoCreate framework combined as a group of attributes that dynamically change attributes & fetch custom data.
+ *
+ * @module state
+ * @environment client
+ */
+
+/**
+ * Declarative selectors recognized by this module.
+ *
+ * @name declarative-selectors
+ * @kind member
+ * @selectors
+ * @environment client
+ * @example
+ * ```json
+ * [
+ *   "[state-id]"
+ * ]
+ * ```
+ */

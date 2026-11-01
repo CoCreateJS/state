@@ -15,55 +15,6 @@
   "publishConfig": {
     "access": "public"
   },
-  "cocreate": {
-    "environment": [
-      "client"
-    ],
-    "interface": {
-      "schemaVersion": 1,
-      "summary": "Data attributes which can be used for components in CoCreate framework combined as a group of attributes that dynamically change attributes & fetch custom data.",
-      "source": "src/index.js",
-      "declarative": {
-        "selectors": [
-          "[state-id]"
-        ],
-        "attributes": [
-          {
-            "name": "state"
-          },
-          {
-            "name": "state-id"
-          },
-          {
-            "name": "state-localstorage"
-          },
-          {
-            "name": "state-onstoragechange"
-          },
-          {
-            "name": "state-overwrite"
-          },
-          {
-            "name": "state-title"
-          },
-          {
-            "name": "state-to"
-          },
-          {
-            "name": "value"
-          }
-        ]
-      },
-      "api": {
-        "exports": [
-          "initElement",
-          "initElements",
-          "setState",
-          "stateAttributes"
-        ]
-      }
-    }
-  },
   "scripts": {
     "start": "webpack --config webpack.config.js",
     "build": "webpack --mode=production --config webpack.config.js",
