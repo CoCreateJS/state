@@ -1,3 +1,34 @@
+# [2.0.0](https://github.com/CoCreateJS/state/compare/v1.26.2...v2.0.0) (2026-11-02)
+
+
+### Bug Fixes
+
+* accept evaluated objects in state attributes ([dda0e7a](https://github.com/CoCreateJS/state/commit/dda0e7a3219d1e359da1d8133c46a296b83ce442))
+* add Deno specific entries to .gitignore ([1cc21b9](https://github.com/CoCreateJS/state/commit/1cc21b9e0cf460151b0739b4eafea99bba2c171c))
+* bump [@cocreate](https://github.com/cocreate) dependencies ([b678cde](https://github.com/CoCreateJS/state/commit/b678cde4d0a1970c6b41cc58f8b8d96259d9180e))
+* bump versions ([75d060e](https://github.com/CoCreateJS/state/commit/75d060ef6dbd74cae2f63f88c4c4567500b5774e))
+* bump versions ([5afdb26](https://github.com/CoCreateJS/state/commit/5afdb2609cbfbaa89930843909e231802c0540db))
+* remove trailing slash from node_modules entry in .gitignore ([5c6685b](https://github.com/CoCreateJS/state/commit/5c6685b6d9e88891f2d519d84fda0d2074b4dc5d))
+* update git url ([5a0a0e9](https://github.com/CoCreateJS/state/commit/5a0a0e90ed66292a6b3f98f23a5debeb6bb471f0))
+* update GitHub Actions to use latest versions and sync package.json description ([bc88cf5](https://github.com/CoCreateJS/state/commit/bc88cf54444c84af4b74374fe2b1b0875786fe16))
+
+
+### chore
+
+* record package identity migration as breaking ([e381476](https://github.com/CoCreateJS/state/commit/e38147626002fcb224caa0fb8405c7596b76de3f))
+
+
+### Features
+
+* replace uuid import and usage with utils ([5f8b8d5](https://github.com/CoCreateJS/state/commit/5f8b8d57d020332028fb2b12a9dbc7993e02070c))
+* support programmatic state updates ([6d6df2f](https://github.com/CoCreateJS/state/commit/6d6df2f6ab161a58e8ecefced8773adf27529a9a))
+* sync active session state with service worker ([49ee045](https://github.com/CoCreateJS/state/commit/49ee0451a87e1d2d64e9280960eaa9951b57cb4c))
+
+
+### BREAKING CHANGES
+
+* Consumers must install @cocreate/state and use the CoCreateJS repository identity; previous package and repository identities are no longer supported.
+
 ## [1.26.2](https://github.com/CoCreateJS/CoCreate-state/compare/v1.26.1...v1.26.2) (2026-07-19)
 
 
