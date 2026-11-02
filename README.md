@@ -2,7 +2,7 @@
 
 `@cocreate/state` provides declarative state persistence and state-driven UI updates for CoCreate applications. A source element stores selected values under one or more keys, and elements with matching `state-id` attributes replay those values into their attributes, values, classes, or element methods.
 
-[Docs and demo](https://CoCreateJS.com/docs/state) | [Changelog](https://github.com/CoCreateJS/CoCreate-state/blob/master/CHANGELOG.md) | [Issues](https://github.com/CoCreateJS/CoCreate-state/issues)
+[Docs and demo](https://CoCreateJS.com/docs/state) | [Changelog](https://github.com/CoCreateJS/state/blob/master/CHANGELOG.md) | [Issues](https://github.com/CoCreateJS/state/issues)
 
 ## Installation
 
@@ -274,11 +274,11 @@ Use the registered action name `state` and ensure the action element receives th
 
 ## Contributing
 
-Please read the [contributing guide](https://github.com/CoCreateJS/CoCreate-state/blob/master/CONTRIBUTING.md), open an [issue](https://github.com/CoCreateJS/CoCreate-state/issues), or submit a pull request. Changes to storage selection, state shape, attribute assignment, history behavior, and the `stateEnd` event are compatibility-sensitive and should include documentation and examples.
+Please read the [contributing guide](https://github.com/CoCreateJS/state/blob/master/CONTRIBUTING.md), open an [issue](https://github.com/CoCreateJS/state/issues), or submit a pull request. Changes to storage selection, state shape, attribute assignment, history behavior, and the `stateEnd` event are compatibility-sensitive and should include documentation and examples.
 
 ## License
 
 This software is dual-licensed under the GNU Affero General Public License version 3 (AGPLv3) and a commercial license.
 
-- **Open source use:** For open-source projects and non-commercial use, the software is available under the AGPLv3. See the [LICENSE file](https://github.com/CoCreateJS/CoCreate-state/blob/master/LICENSE).
+- **Open source use:** For open-source projects and non-commercial use, the software is available under the AGPLv3. See the [LICENSE file](https://github.com/CoCreateJS/state/blob/master/LICENSE).
 - **Commercial use:** For-profit use requires a commercial license from [CoCreate](https://CoCreateJS.com).
