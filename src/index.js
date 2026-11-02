@@ -508,64 +508,56 @@ export default { initElements, initElement, stateAttributes, setState };
 /**
  *
  * @name state
- * @kind member
- * @attribute
+ * @kind attribute
  * @environment client
  */
 
 /**
  *
  * @name state-id
- * @kind member
- * @attribute
+ * @kind attribute
  * @environment client
  */
 
 /**
  *
  * @name state-localstorage
- * @kind member
- * @attribute
+ * @kind attribute
  * @environment client
  */
 
 /**
  *
  * @name state-onstoragechange
- * @kind member
- * @attribute
+ * @kind attribute
  * @environment client
  */
 
 /**
  *
  * @name state-overwrite
- * @kind member
- * @attribute
+ * @kind attribute
  * @environment client
  */
 
 /**
  *
  * @name state-title
- * @kind member
- * @attribute
+ * @kind attribute
  * @environment client
  */
 
 /**
  *
  * @name state-to
- * @kind member
- * @attribute
+ * @kind attribute
  * @environment client
  */
 
 /**
  *
  * @name value
- * @kind member
- * @attribute
+ * @kind attribute
  * @environment client
  */
 
