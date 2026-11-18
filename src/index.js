@@ -1,7 +1,7 @@
 import "@cocreate/element-prototype";
 import Observer from "@cocreate/observer";
 import Action from "@cocreate/actions";
-import { uuid } from "@cocreate/utils";
+import { uid } from "@cocreate/utils";
 import storage from "@cocreate/local-storage";
 
 const { localStorage, sessionStorage } = storage;
@@ -419,7 +419,7 @@ async function _getAttributeValues(element) {
         if (attribute.name.startsWith("state.")) {
             const key = attribute.name.slice(6);
             if (attribute.value == "$uuid") {
-                Object.assign(attributeValues, { [key]:  uuid(6) });
+                Object.assign(attributeValues, { [key]:  uid(6) });
             } else if (key === "value" && !attribute.value) {
                 Object.assign(attributeValues, { value: await element.getValue() });
             } else {
