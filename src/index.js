@@ -2,9 +2,8 @@ import "@cocreate/element-prototype";
 import Observer from "@cocreate/observer";
 import Action from "@cocreate/actions";
 import { uid } from "@cocreate/utils";
-import storage from "@cocreate/local-storage";
 
-const { localStorage, sessionStorage } = storage;
+const { localStorage, sessionStorage } = globalThis;
 
 async function syncActiveState() {
     if (!("serviceWorker" in navigator)) return;
